@@ -13,10 +13,12 @@ import (
 )
 
 var (
-	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "test_status",
-		Help: "passed or failed test",
-	})
+	opsProcessed = promauto.NewGaugeVec(prometheus.GaugeOpts{
+			Name: "test_status",
+			Help: "passed or failed test",
+		},
+		[]string{"service"},
+	)
 	testExecuted = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "test_executions",
 		Help: "Number of test executions",
@@ -39,7 +41,7 @@ func main() {
 		testExecuted.Inc()
 		status, duration := checkSite(addr)
 		rpcDurations.WithLabelValues(addr).Observe(duration)
-		opsProcessed.Set(float64(status))
+		opsProcessed.WithLabelValues(addr).Set(float64(status))
 		time.Sleep(sleepSeconds)
 	}
 }
